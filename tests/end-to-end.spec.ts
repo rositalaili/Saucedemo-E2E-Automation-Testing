@@ -3,7 +3,7 @@ import { LoginPage } from '../modules/login.page';
 import { InventoryPage } from '../modules/inventory.page';
 import { CartPage } from '../modules/cart.page';
 import { CheckoutPage } from '../modules/checkout.page';
-import { validUser } from '../fixtures/user.fixtures';
+import { validUser, invalidUser } from '../fixtures/user.fixtures';
 import { baseUrl } from '../fixtures/base-url.fixtures';
 import { testData } from '../fixtures/test-data.fixture';
 
@@ -12,8 +12,22 @@ test('End-to-End flow', async ({ page }, testInfo) => {
     let inventoryPage: InventoryPage;
     let cartPage: CartPage;
     let checkoutPage: CheckoutPage;
-  
-    await test.step('Login', async () => {
+
+    await test.step('Login with Invalid User', async () => {
+      loginPage = new LoginPage(page);
+      await loginPage.navigate(baseUrl.url);
+      await expect(page.locator('[data-test="login-button"]')).toBeVisible();
+      await loginPage.login(invalidUser.username, invalidUser.password);
+      await expect(page.locator('[data-test="error"]')).toContainText('Epic sadface: Username and password do not match any user in this service');
+
+      await test.step('Screenshot Step Login', async () => {
+        const screenshot = await page.screenshot({ path: `${testInfo.outputDir}/step-0-login-failed.png` });
+        await testInfo.attach('Screenshot Login', { body: screenshot, contentType: 'image/png' });
+      });
+
+    });
+
+    await test.step('Login with Valid User', async () => {
       loginPage = new LoginPage(page);
       await loginPage.navigate(baseUrl.url);
       await expect(page.locator('[data-test="login-button"]')).toBeVisible();
